@@ -9,8 +9,7 @@ namespace CustomEditor_project.Editor
     public class GameConfigLoaderInspector : UnityEditor.Editor
     {
         private readonly List<GameConfig> _loadedGameConfigs = new();
-
-        private SerializedProperty _gameConfigsProperty;
+        private SerializedProperty _currentGameConfigProperty;
 
         public override void OnInspectorGUI()
         {
@@ -19,12 +18,24 @@ namespace CustomEditor_project.Editor
             
             if (_loadedGameConfigs != null && _loadedGameConfigs.Count > 0)
             {
-                EditorGUILayout.LabelField("Loaded Game Configs:", EditorStyles.boldLabel);
-                foreach (GameConfig config in _loadedGameConfigs)
+                EditorGUILayout.LabelField("Select game config:", EditorStyles.boldLabel);
+                for (int i = 0; i < _loadedGameConfigs.Count; i++)
                 {
-                    if (config != null)
+                    if (_loadedGameConfigs[i] != null)
                     {
-                        EditorGUILayout.ObjectField(config.name, config, typeof(GameConfig), false);
+                        EditorGUI.BeginChangeCheck();
+                        bool isSelected = EditorGUILayout.ToggleLeft(_loadedGameConfigs[i].name, _loadedGameConfigs[i] == (GameConfig)_currentGameConfigProperty.objectReferenceValue);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            if (isSelected)
+                            {
+                                _currentGameConfigProperty.objectReferenceValue = _loadedGameConfigs[i];
+                            }
+                            else if (_loadedGameConfigs[i] == (GameConfig)_currentGameConfigProperty.objectReferenceValue)
+                            {
+                                _currentGameConfigProperty.objectReferenceValue = null;
+                            }
+                        }
                     }
                 }
             }
@@ -38,6 +49,7 @@ namespace CustomEditor_project.Editor
 
         private void OnEnable()
         {
+            _currentGameConfigProperty = serializedObject.FindProperty("_currentGameConfig");
             LoadGameConfigs();
         }
 
